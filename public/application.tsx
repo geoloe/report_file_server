@@ -83,7 +83,7 @@ export const renderApp = (coreStart: CoreStart, depsStart: any, { element }: { e
     const handleDownload = async (name: string) => {
       try {
         const fileName = encodeURIComponent(name);
-        const url = `/api/custom_reports/download/${fileName}`;
+        const url = `/avy/api/custom_reports/download/${fileName}`;
         const response = await fetch(url, { method: 'GET' });
         if (!response.ok) throw new Error(`Failed to download the report: ${response.statusText}`);
         const arrayBuffer = await response.arrayBuffer();
