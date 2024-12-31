@@ -24,7 +24,7 @@ The "report" navigation button is attached to the top nav bar so it remains reac
 ## Usage
 
 Once the plugin is installed and OpenSearch Dashboards is running, the **Reports File Server** will automatically be active. All pdfs that are under the current home directory in a folder called "reports" will be fetched for the the user to download over the GUI.
-Please use `cat /etc/passwd` to check which is the current home directory for OSD. It usually is `/usr/share/opensearh-dashboards`. Then create a reports folder with the necessary permissions (e.g. chmod 755) and the files can be downloaded.
+Please use `cat /etc/passwd` to check which is the current home directory for OSD. It usually is `/usr/share/opensearch-dashboards`. Then create a reports folder with the necessary permissions (e.g. chmod 755) and the files can be downloaded.
 
 Please note that in order to separate files from each tenant the names of the pdfs need to have the tenant name configured (case-insensitive). So for instance:
 
