@@ -1,0 +1,7 @@
+{
+  "prefix": "reportFileServer",
+  "paths": {
+    "reportFileServer": "."
+  },
+  "translations": ["translations/ja-JP.json"]
+}
