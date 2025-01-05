@@ -27,10 +27,9 @@ const ReportNavigation: React.FC<ReportNavigationProps> = ({ coreStart }) => {
         style={{ flexWrap: 'nowrap' }} // Prevent items from wrapping
       >
         <EuiFlexItem
-          grow={false}
+          grow={true}
           style={{
-            marginLeft: '8px', // Add spacing from the separator
-            marginRight: '8px', // Optional: Add spacing for uniformity
+            padding: '0 16px',
           }}
         >
           <EuiButton
