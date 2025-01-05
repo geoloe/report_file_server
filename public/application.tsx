@@ -25,16 +25,19 @@ export const renderApp = (coreStart: CoreStart, depsStart: any, { element }: { e
     const [searchQuery, setSearchQuery] = useState('');
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(10);
-    const [sortField, setSortField] = useState<keyof Report>('name');
-    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+    const [sortField, setSortField] = useState<keyof Report>('creationTime'); // Default sort field
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc'); // Default sort direction
 
     // Fetch the reports data
     const fetchReports = async () => {
       try {
         const response = await coreStart.http.get<{ reports: Report[] }>('/api/custom_reports/reports');
         const fetchedReports = response.reports || [];
-        setReports(fetchedReports);
-        setFilteredReports(fetchedReports); // Initially set filtered reports to all fetched reports
+        const sortedReports = [...fetchedReports].sort((a, b) =>
+          new Date(b.creationTime).getTime() - new Date(a.creationTime).getTime()
+        ); // Sort by creationTime (latest first)
+        setReports(sortedReports);
+        setFilteredReports(sortedReports); // Initially set filtered reports to all fetched reports
       } catch (error) {
         console.error('Error fetching reports:', error);
         setReports([]);
@@ -126,7 +129,7 @@ export const renderApp = (coreStart: CoreStart, depsStart: any, { element }: { e
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit',
-            hour12: false,  // For 24-hour format
+            hour12: false, // For 24-hour format
           });
         },
       },
