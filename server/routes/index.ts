@@ -1,10 +1,9 @@
 import { IRouter } from '../../../../src/core/server';
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 
 // Define the reports directory relative to the user's home directory
-const REPORTS_DIRECTORY = path.join(os.homedir(), 'reports');
+const REPORTS_DIRECTORY = '/mnt/reports';
 
 export const defineRoutes = (router: IRouter) => {
   // Route to fetch the list of reports for the current tenant
