@@ -11,6 +11,7 @@ import {
   EuiSpacer,
   EuiFieldSearch,
   EuiButtonIcon,
+  EuiTabbedContent,
 } from '@elastic/eui';
 
 interface Report {
@@ -25,19 +26,19 @@ export const renderApp = (coreStart: CoreStart, depsStart: any, { element }: { e
     const [searchQuery, setSearchQuery] = useState('');
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(10);
-    const [sortField, setSortField] = useState<keyof Report>('creationTime'); // Default sort field
-    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc'); // Default sort direction
+    const [sortField, setSortField] = useState<keyof Report>('creationTime');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+    const [selectedTab, setSelectedTab] = useState<string>('daily'); // Default to 'daily'
 
-    // Fetch the reports data
     const fetchReports = async () => {
       try {
         const response = await coreStart.http.get<{ reports: Report[] }>('/api/custom_reports/reports');
         const fetchedReports = response.reports || [];
         const sortedReports = [...fetchedReports].sort((a, b) =>
           new Date(b.creationTime).getTime() - new Date(a.creationTime).getTime()
-        ); // Sort by creationTime (latest first)
+        );
         setReports(sortedReports);
-        setFilteredReports(sortedReports); // Initially set filtered reports to all fetched reports
+        setFilteredReports(sortedReports);
       } catch (error) {
         console.error('Error fetching reports:', error);
         setReports([]);
@@ -45,13 +46,17 @@ export const renderApp = (coreStart: CoreStart, depsStart: any, { element }: { e
       }
     };
 
-    // Filter and sort reports whenever relevant state changes
+    useEffect(() => {
+      fetchReports();
+    }, []);
+
     useEffect(() => {
       const lowerCaseQuery = searchQuery.toLowerCase();
+      const tabFilter = selectedTab === 'daily' ? '[DAILY]' : '[MONTHLY]';
 
-      const filtered = reports.filter((report) =>
-        report.name.toLowerCase().includes(lowerCaseQuery)
-      );
+      const filtered = reports
+        .filter((report) => report.name.includes(tabFilter))
+        .filter((report) => report.name.toLowerCase().includes(lowerCaseQuery));
 
       const sorted = [...filtered].sort((a, b) => {
         const aValue = a[sortField];
@@ -63,14 +68,12 @@ export const renderApp = (coreStart: CoreStart, depsStart: any, { element }: { e
       });
 
       setFilteredReports(sorted);
-    }, [searchQuery, reports, sortField, sortDirection]);
+    }, [searchQuery, reports, sortField, sortDirection, selectedTab]);
 
-    // Handle search input changes
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchQuery(e.target.value); // Update search query state
+      setSearchQuery(e.target.value);
     };
 
-    // Handle table page change
     const handleTableChange = ({ page, sort }: { page?: any; sort?: any }) => {
       if (page) {
         setPageIndex(page.index);
@@ -102,11 +105,6 @@ export const renderApp = (coreStart: CoreStart, depsStart: any, { element }: { e
       }
     };
 
-    // Fetch reports on component mount
-    useEffect(() => {
-      fetchReports();
-    }, []);
-
     const columns = [
       {
         field: 'name',
@@ -129,7 +127,7 @@ export const renderApp = (coreStart: CoreStart, depsStart: any, { element }: { e
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit',
-            hour12: false, // For 24-hour format
+            hour12: false,
           });
         },
       },
@@ -146,27 +144,17 @@ export const renderApp = (coreStart: CoreStart, depsStart: any, { element }: { e
       },
     ];
 
-    // Paginate the filtered reports
     const paginatedReports = filteredReports.slice(
       pageIndex * pageSize,
       (pageIndex + 1) * pageSize
     );
 
-    return (
-      <EuiPage paddingSize="l">
-        <EuiPageBody>
-          <EuiPageContent>
-            <EuiTitle size="l">
-              <h1>Daily Reports</h1>
-            </EuiTitle>
-            <EuiSpacer size="m" />
-            <EuiFieldSearch
-              placeholder="Search reports"
-              value={searchQuery}
-              onChange={handleSearch}
-              isClearable
-              aria-label="Search reports"
-            />
+    const tabs = [
+      {
+        id: 'daily',
+        name: 'Daily Reports',
+        content: (
+          <>
             <EuiSpacer size="m" />
             <EuiBasicTable<Report>
               items={paginatedReports}
@@ -181,6 +169,55 @@ export const renderApp = (coreStart: CoreStart, depsStart: any, { element }: { e
                 sort: { field: sortField, direction: sortDirection },
               }}
               onChange={handleTableChange}
+            />
+          </>
+        ),
+      },
+      {
+        id: 'monthly',
+        name: 'Monthly Reports',
+        content: (
+          <>
+            <EuiSpacer size="m" />
+            <EuiBasicTable<Report>
+              items={paginatedReports}
+              columns={columns}
+              pagination={{
+                pageIndex,
+                pageSize,
+                totalItemCount: filteredReports.length,
+                pageSizeOptions: [5, 10, 20, 50],
+              }}
+              sorting={{
+                sort: { field: sortField, direction: sortDirection },
+              }}
+              onChange={handleTableChange}
+            />
+          </>
+        ),
+      },
+    ];
+
+    return (
+      <EuiPage paddingSize="l">
+        <EuiPageBody>
+          <EuiPageContent>
+            <EuiTitle size="l">
+              <h1>Reports</h1>
+            </EuiTitle>
+            <EuiSpacer size="m" />
+            <EuiFieldSearch
+              placeholder="Search reports"
+              value={searchQuery}
+              onChange={handleSearch}
+              isClearable
+              aria-label="Search reports"
+            />
+            <EuiSpacer size="m" />
+            <EuiTabbedContent
+              tabs={tabs}
+              selectedTab={tabs.find((tab) => tab.id === selectedTab)}
+              onTabClick={(tab) => setSelectedTab(tab.id)}
             />
           </EuiPageContent>
         </EuiPageBody>
